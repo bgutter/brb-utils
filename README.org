@@ -17,14 +17,14 @@ Burn some ISOs to BD-R (DVD-R, CD-R, etc) discs:
 
 #+BEGIN_SRC sh
 brb-burn-isos.sh [iso-files...] [optical-device]
-brb-burn-isos.sh /my/iso-dir/2019-04-20-manifest-*.iso /dev/sr0
+brb-burn-isos.sh /my/iso-dir/manifest-*.iso /dev/sr0
 #+END_SRC
 
 Restore data from ISOs:
 
 #+BEGIN_SRC sh
 brb-restore-isos.sh [iso-files...] [restore-dir]
-brb-restore-isos.sh /my/iso-dir/2019-04-20-manifest-*.iso /my/important/dir
+brb-restore-isos.sh /my/iso-dir/manifest-*.iso /my/important/dir
 #+END_SRC
 
 Restore data from optical:

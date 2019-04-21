@@ -12,12 +12,11 @@ backupPath="$1"
 maxDivSize="$2"
 maxDiskSize="$3"
 isoDir="$4"
-divdirPath=/sync/system-config/bin/divdir.py
+divdirPath=./divdir.py
 
 #
 # Book-keeping variables
 #
-now=$(date +"%Y-%m-%d")
 loopDevice=$(losetup -f)
 wkspDir=$(mktemp -d)
 backupDriveName=backupImage
@@ -91,7 +90,7 @@ for manifestFile in $wkspDir/manifest-*.txt; do
     #
     # Create the ISO
     #
-    isoFile=$isoDir/$now-$manifestFileId.iso
+    isoFile=$isoDir/$manifestFileId.iso
     echo
     echo "Creating $isoFile and mounting it to $loopDevice"
     echo $bar
@@ -147,35 +146,12 @@ for manifestFile in $wkspDir/manifest-*.txt; do
     sudo cryptsetup luksClose $backupDriveContainerName
     sudo losetup -d $loopDevice
 
-    #
-    # Write image to bluray
-    #
-    #echo
-    #echo "Burning disc..."
-    #echo $bar
-    #read -p "Press enter when a blank disc is ready. Type 's' to skip:" -n 1 -r
-    #echo
-    #if [[ ! $REPLY =~ ^[Ss]$ ]]
-    #then
-    #    growisofs -use-the-force-luke=spare=none -dvd-compat -Z $burnerDevice=$isoFile
-    #fi
-   
-    # #
-    # # Remove the ISO & finish
-    # # TODO: Actually, maybe add switch for this. I will
-    # #       save the ISOs on a commercial VPS for offsite
-    # #       backups at some point
-    # echo
-    # echo "Removing ISO file..."
-    # echo $bar
-    # rm $isoFile
-
 done
 
 echo
 echo "Deleting temp directory"
 echo $bar
-rm -r $wkspDir
+rm -rf $wkspDir
 
 echo "Done!"
 echo
