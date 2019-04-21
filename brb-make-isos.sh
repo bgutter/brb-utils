@@ -29,10 +29,10 @@ bar="======================================="
 # a year from now).
 #
 echo
-echo "Backing up contents of:                    $backupPath"
-echo "Leaving ISOs in:                           $isoDir"
-echo "Max division size is:                      $maxDivSize"
-echo "Max disk size is:                          $maxDiskSize"
+echo "Backing up contents of: $backupPath"
+echo "Leaving ISOs in:        $isoDir"
+echo "Max division size is:   $maxDivSize"
+echo "Max disk size is:       $maxDiskSize"
 echo
 
 #
