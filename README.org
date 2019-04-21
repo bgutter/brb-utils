@@ -52,16 +52,69 @@ BRB has no logic to handle files which are too large to fit on a single ISO. If 
 
 * File Distribution Strategy
 
-Files are distributed with a focus on keeping top-level subdirectories on as few ISOs as possible, while minimizing the total number of ISOs elsewhere.  The general algorithm, given a source directory of /foo:
+Files are distributed with a focus on keeping top-level subdirectories on as few ISOs as possible, while minimizing the total number of ISOs elsewhere.  The general algorithm, given a source directory of =/foo=:
 
- 1. If /foo/bar is small enough to fit on a single volume, it will always be placed on a single volume. It will not be split across volumes. This only applies to immediate children of the given source directory.
+ 1. If =/foo/bar= is small enough to fit on a single volume, it will always be placed on a single volume. It will not be split across volumes. This only applies to immediate children of the given source directory.
 
- 2. If /foo/bar, or /foo/bar/baz, or any other subdirectory is not small enough to fit on a single volume, it will be placed on as few volumes as possible.
+ 2. If =/foo/bar=, or =/foo/bar/baz=, or any other subdirectory is not small enough to fit on a single volume, it will be placed on as few volumes as possible.
 
  3. When merging subtrees into the same volume, always attempt to combine siblings (files and folders in the same parent directory) first. If any subset of the contents of a directory can be placed on the same volume, then at least one such subset will be placed in a single volume.
 
  4. Subject to the previous constraints, as many items as possible will be placed into each volume, provided that it does not increase fragmentation of a toplevel directory.
 
+* ISO Contents
+
+Each ISO will contain the following:
+- A sub-tree of the directory being backed up.
+- *MANIFEST.TXT*, a copy of the =manifest-N.txt= file, created by =divdir.py=, which was fed into =rsync= to copy that subtree.
+- *MAP.TXT*, a copy of the =map.txt= file, also from =divdir.py=.
+
+For example:
+
+#+BEGIN_SRC sh
+ls /path/to/mounted/iso
+documents/
+photos/
+records/
+MANIFEST.TXT
+MAP.TXT
+#+END_SRC
+
+** MANIFEST.TXT
+
+This is a list of paths from the host system which have been individually rsync'd into the ISO. It may contain both files and directories. Note that a =/./= is inserted in each path after the target directory -- this tells rsync to preserve the remainder of the filesystem hierarchy when copying.
+
+#+BEGIN_SRC sh
+head -n 5 /path/to/mounted/iso/MANIFEST.TXT
+/original/dir/./documents
+/original/dir/./records/some_huge_file.bin
+/original/dir/./photos/2010-11-21
+/original/dir/./photos/2018-11-02
+/original/dir/./photos/2013-04-13
+#+END_SRC
+
+In this example, we know that the =./documents= subdirectory has been copied, in its entirety, onto the current ISO. It was not split across multiple images. Both =./photos= and =./records= have been split. However, this sort of information is much more easy to glean from the =MAP.TXT= file.
+
+** MAP.TXT
+
+This is a mapping from top-level subdirectory to volume number. It describes which ISOs are required to fully restore a given top-level directory.
+
+#+BEGIN_SRC sh
+cat /path/to/mounted/iso/MAP.TXT
+videos                  : 0 1 3 6
+photos                  : 2 4
+records                 : 4 5
+credentials             : 3
+documents               : 4
+world-domination-plans  : 5
+cat-pictures            : 7
+software-library        : 7
+#+END_SRC
+
+In this example, we see that the =./videos= top-level subdirectory was placed on ISOs 0, 1, 3, and 6. =./photos= and =./records= were similarly split. All remaining directory hierarchies are on single volumes.
+
 * Warnings and Disclaimers
 
-This code has not been thoroughly tested, but is working well for me. Additionally, the Python code has recursion without explicit limits. If you have an insanely deep file-tree, and your stack gets blown, sorry.
+- This code has not been thoroughly tested, but is working well for me.
+- The Python code has recursion without explicit limits. If you have an insanely deep file-tree, and your stack gets blown, I apologize.
+- If you have a file named =MANIFEST.TXT= or =MAP.TXT= in the root of the directory you're backing up, this code will not work. These files will be overwritten at ISO creation to store metadata about the volumes.
