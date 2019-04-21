@@ -39,7 +39,7 @@ brb-restore.sh /dev/sr0 /my/important/dir
 This program may be used as-is, provided the following conditions are met:
 
 ** Hard drive space requirements
-You will need to have enough free space somewhere on your machine to house the ISO images. This means you need at least as much free space as the size of the directory which you're seeking to backup, and around ~10-20% more depending on the layout and sizes of items in the directory. This is partially due to LUKS, EXT4, and other filesystem overheads, and partially due to BRB's file distribution policy, which considers efficient packing to be a secondary concern to intuitive divisions. [[diststrat][See details on the file distribution strategy below.]]
+You will need to have enough free space somewhere on your machine to house the ISO images. This means you need at least as much free space as the size of the directory which you're seeking to backup, and around ~10-20% more depending on the layout and sizes of items in the directory. This is partially due to LUKS, EXT4, and other filesystem overheads, and partially due to BRB's file distribution policy, which considers efficient packing to be a secondary concern to intuitive divisions. See details on the file distribution strategy below.
 
 ** Linux only
 Image creation and recovery depends on the Linux Unified Key Setup, or LUKS, to produce encrypted volumes. While the remaining dependencies may be met on other POSIX systems, LUKS is not currently available on other operating systems.
@@ -50,7 +50,7 @@ BRB's file distribution strategy assumes that the directory which you're backing
 ** No support for files larger than the ISO capacity
 BRB has no logic to handle files which are too large to fit on a single ISO. If one is present, it will be encountered during the directory division stage, and an error will be produced. The process will be aborted.
 
-* <<diststrat>>File Distribution Strategy
+* File Distribution Strategy
 
 Files are distributed with a focus on keeping top-level subdirectories on as few ISOs as possible, while minimizing the total number of ISOs elsewhere.  The general algorithm, given a source directory of /foo:
 
@@ -60,7 +60,7 @@ Files are distributed with a focus on keeping top-level subdirectories on as few
 
  3. When merging subtrees into the same volume, always attempt to combine siblings (files and folders in the same parent directory) first. If any subset of the contents of a directory can be placed on the same volume, then at least one such subset will be placed in a single volume.
 
- 4. Subject to the previous constraints, as many items as possible will be placed into each directory, provided that it does not increase fragmentation of a toplevel directory.
+ 4. Subject to the previous constraints, as many items as possible will be placed into each volume, provided that it does not increase fragmentation of a toplevel directory.
 
 * Warnings and Disclaimers
 
