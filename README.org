@@ -1,0 +1,67 @@
+#+TITLE: brb-utils
+
+Utilities for securely backing up a large file-tree to encrypted optical media, with each resulting disc remaining individually usable sans decompression, and with files being distributed intuitively.
+
+Given a directory, =brb-make-isos.sh= distributes the contents of the directory intuitively across a set of ISO images. Each ISO will contain a LUKS logical volume, which itself will contain an EXT4 partition. These images, when burned to optical media via =brb-burn-isos.sh=, should be recognized by any modern desktop Linux distribution and decrypt through the normal graphical interfaces.
+
+* tl;dr
+
+Make BD-R sized ISOs backing up a directory:
+
+#+BEGIN_SRC sh
+brb-make-isos.sh [source-dir] [max-division-size] [iso-size] [iso-output-dir]
+brb-make-isos.sh /my/important/dir 21.5G 23G /my/iso-dir
+#+END_SRC
+
+Burn some ISOs to BD-R (DVD-R, CD-R, etc) discs:
+
+#+BEGIN_SRC sh
+brb-burn-isos.sh [iso-files...] [optical-device]
+brb-burn-isos.sh /my/iso-dir/2019-04-20-manifest-*.iso /dev/sr0
+#+END_SRC
+
+Restore data from ISOs:
+
+#+BEGIN_SRC sh
+brb-restore-isos.sh [iso-files...] [restore-dir]
+brb-restore-isos.sh /my/iso-dir/2019-04-20-manifest-*.iso /my/important/dir
+#+END_SRC
+
+Restore data from optical:
+
+#+BEGIN_SRC sh
+brb-restore.sh [optical-device] [restore-dir]
+brb-restore.sh /dev/sr0 /my/important/dir
+#+END_SRC
+
+* Prerequisites and Assumptions
+
+This program may be used as-is, provided the following conditions are met:
+
+** Hard drive space requirements
+You will need to have enough free space somewhere on your machine to house the ISO images. This means you need at least as much free space as the size of the directory which you're seeking to backup, and around ~10-20% more depending on the layout and sizes of items in the directory. This is partially due to LUKS, EXT4, and other filesystem overheads, and partially due to BRB's file distribution policy, which considers efficient packing to be a secondary concern to intuitive divisions. [[diststrat][See details on the file distribution strategy below.]]
+
+** Linux only
+Image creation and recovery depends on the Linux Unified Key Setup, or LUKS, to produce encrypted volumes. While the remaining dependencies may be met on other POSIX systems, LUKS is not currently available on other operating systems.
+
+** An agreeable directory layout
+BRB's file distribution strategy assumes that the directory which you're backing up contains meaningful top-level subdirectories (or, immediate children). It takes special precautions to keep these directories on as few discs as possible. If the directory you're backing is not of this form, the code will still work, but you may not be satisfied with how the files are divided.
+
+** No support for files larger than the ISO capacity
+BRB has no logic to handle files which are too large to fit on a single ISO. If one is present, it will be encountered during the directory division stage, and an error will be produced. The process will be aborted.
+
+* <<diststrat>>File Distribution Strategy
+
+Files are distributed with a focus on keeping top-level subdirectories on as few ISOs as possible, while minimizing the total number of ISOs elsewhere.  The general algorithm, given a source directory of /foo:
+
+ 1. If /foo/bar is small enough to fit on a single volume, it will always be placed on a single volume. It will not be split across volumes. This only applies to immediate children of the given source directory.
+
+ 2. If /foo/bar, or /foo/bar/baz, or any other subdirectory is not small enough to fit on a single volume, it will be placed on as few volumes as possible.
+
+ 3. When merging subtrees into the same volume, always attempt to combine siblings (files and folders in the same parent directory) first. If any subset of the contents of a directory can be placed on the same volume, then at least one such subset will be placed in a single volume.
+
+ 4. Subject to the previous constraints, as many items as possible will be placed into each directory, provided that it does not increase fragmentation of a toplevel directory.
+
+* Warnings and Disclaimers
+
+This code has not been thoroughly tested, but is working well for me. Additionally, the Python code has recursion without explicit limits. If you have an insanely deep file-tree, and your stack gets blown, sorry.
