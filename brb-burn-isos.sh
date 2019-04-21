@@ -13,10 +13,13 @@ isoList=${*%${!#}}
 bar="======================================="
 
 #
-# Burn each ISO
+# For each passed ISO
 #
 for isoFile in $isoList; do
 
+    #
+    # Burn the ISO
+    #
     echo
     echo "Burning $isoFile..."
     echo $bar
@@ -26,6 +29,12 @@ for isoFile in $isoList; do
     then
        growisofs -use-the-force-luke=spare=none -dvd-compat -Z $burnerDevice=$isoFile
     fi
+
+    #
+    # Read the file back from disk and compare checksum
+    # against the ISO image
+    #
+    # TODO
 
 done
 
